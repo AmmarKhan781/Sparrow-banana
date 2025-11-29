@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sparrow Banana Game</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: url("bg.jpg");
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: cover;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        color: white;
+        padding: 10px;
+      }
+
+      .game-container {
+        width: 100%;
+        max-width: 800px;
+        text-align: center;
+        padding: 15px;
+        background: url("bg.jpg");
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: cover;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        position: relative;
+      }
+
+      h1 {
+        font-size: clamp(1.8rem, 5vw, 2.8rem);
+        margin-bottom: 8px;
+        color: #ffd700;
+        text-shadow: 2px 2px 0 #ff6b00;
+        letter-spacing: 1px;
+      }
+
+      .subtitle {
+        font-size: clamp(0.9rem, 3vw, 1.2rem);
+        margin-bottom: 15px;
+        color: #ffd700;
+      }
+
+      .controls {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      @media (min-width: 768px) {
+        .controls {
+          flex-direction: row;
+          justify-content: center;
+          gap: 20px;
+        }
+      }
+
+      button {
+        padding: 10px 20px;
+        font-size: clamp(0.9rem, 3vw, 1.1rem);
+        font-weight: bold;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        width: 100%;
+        max-width: 200px;
+      }
+
+      @media (min-width: 768px) {
+        button {
+          width: auto;
+        }
+      }
+
+      #startBtn {
+        background: linear-gradient(to right, #4caf50, #8bc34a);
+        color: white;
+      }
+
+      #soundToggle {
+        background: linear-gradient(to right, #2196f3, #03a9f4);
+        color: white;
+      }
+
+      button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+      }
+
+      button:active {
+        transform: translateY(1px);
+      }
+
+      .canvas-container {
+        position: relative;
+        width: 100%;
+        margin: 0 auto;
+        overflow: hidden;
+        background: url("bg.jpg");
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: cover;
+        border-radius: 10px;
+        border: 3px solid #ffd700;
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+      }
+
+      #gameCanvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        background: url("bg.jpg");
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: cover;
+      }
+
+      .score-container {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+        font-size: clamp(1rem, 4vw, 1.3rem);
+        font-weight: bold;
+      }
+
+      #score {
+        color: #4caf50;
+      }
+
+      #highScore {
+        color: #ff9800;
+      }
+
+      #finalScore {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.9);
+        padding: 20px 30px;
+        border-radius: 15px;
+        font-size: clamp(1.2rem, 4vw, 2rem);
+        color: #ffd700;
+        display: none;
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.7);
+        z-index: 10;
+        text-align: center;
+        border: 2px solid #ffd700;
+        width: 90%;
+        max-width: 400px;
+      }
+
+      #finalScore h2 {
+        margin-bottom: 10px;
+        font-size: clamp(1.5rem, 5vw, 2.5rem);
+        color: #4caf50;
+      }
+
+      #restartBtn {
+        background: linear-gradient(to right, #ff5722, #ff9800);
+        color: white;
+        margin-top: 15px;
+        padding: 10px 25px;
+        font-size: clamp(1rem, 3vw, 1.2rem);
+      }
+
+      .instructions {
+        margin-top: 15px;
+        font-size: clamp(0.8rem, 2.5vw, 1rem);
+        color: #bdbdbd;
+        line-height: 1.4;
+      }
+
+      .sound-status {
+        margin-top: 5px;
+        font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+        color: #ffffff;
+        border: 2px solid orange;
+        border-radius: 10px;
+        width: 20%;
+        background-color: #ff6b00;
+        box-shadow: 0px 0px 5px rgb(222, 150, 16);
+      }
+
+      .mobile-controls {
+        display: none;
+        margin-top: 15px;
+        gap: 10px;
+      }
+
+      @media (max-width: 767px) {
+        .mobile-controls {
+          display: flex;
+          justify-content: center;
+        }
+      }
+
+      .mobile-controls button {
+        padding: 15px 20px;
+        font-size: 1.2rem;
+        background: rgba(255, 215, 0, 0.8);
+        color: #000;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-container">
+      <h1>SPARROW BANANA GAME</h1>
+      <div class="subtitle">Tap to fly and avoid the bananas!</div>
+
+      <div class="controls">
+        <button id="startBtn">Start Game</button>
+        <div>
+          <button id="soundToggle">Change Die Sound</button>
+        </div>
+        <br />
+        <div class="sound-status">Current: Ouch Ouch</div>
+      </div>
+
+      <div class="canvas-container">
+        <canvas id="gameCanvas"></canvas>
+      </div>
+
+      <div class="mobile-controls">
+        <button id="mobileJump">JUMP</button>
+      </div>
+
+      <div class="score-container">
+        <div>Score: <span id="score">0</span></div>
+        <div>High Score: <span id="highScore">0</span></div>
+      </div>
+
+      <div id="finalScore">
+        <h2>Game Over!</h2>
+        <div>Your Score: <span id="finalScoreValue">0</span></div>
+        <button id="restartBtn">Play Again</button>
+      </div>
+
+      <div class="instructions">
+        <p>Click or tap to make the player fly. Avoid hitting the bananas!</p>
+      </div>
+    </div>
+
+    <script>
+      // Game elements
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      const startBtn = document.getElementById("startBtn");
+      const restartBtn = document.getElementById("restartBtn");
+      const soundToggle = document.getElementById("soundToggle");
+      const scoreDisplay = document.getElementById("score");
+      const highScoreDisplay = document.getElementById("highScore");
+      const finalScoreDisplay = document.getElementById("finalScore");
+      const finalScoreValue = document.getElementById("finalScoreValue");
+      const soundStatus = document.querySelector(".sound-status");
+      const mobileJumpBtn = document.getElementById("mobileJump");
+
+      // Set canvas size based on device
+      function setCanvasSize() {
+        const container = document.querySelector(".canvas-container");
+        const containerWidth = container.clientWidth;
+        const containerHeight = Math.min(
+          containerWidth * 0.7,
+          window.innerHeight * 0.6
+        );
+
+        canvas.width = containerWidth;
+        canvas.height = containerHeight;
+      }
+
+      // Game variables
+      let gameStarted = false;
+      let gameOver = false;
+      let score = 0;
+      let highScore = 0;
+      let dieSoundType = 1; // 1 or 2
+      let bananaInterval;
+
+      // Player
+      const player = {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+        velocity: 0,
+        gravity: 0,
+        jumpPower: 0,
+      };
+
+      // Bananas (obstacles)
+      let bananas = [];
+      let bananaWidth = 0;
+      let bananaHeight = 0;
+      let gap = 0;
+
+      // Initialize game parameters based on screen size
+      function initGameParams() {
+        // Player properties
+        player.width = canvas.width * 0.07;
+        player.height = player.width;
+        player.x = canvas.width * 0.15;
+        player.y = canvas.height / 2;
+        player.velocity = 0;
+        player.gravity = canvas.height * 0.0008;
+        player.jumpPower = -canvas.height * 0.02;
+
+        // Banana properties - REDUCED MARGINS
+        bananaWidth = canvas.width * 0.11;
+        bananaHeight = bananaWidth * 1.2;
+        // SIGNIFICANTLY REDUCED gap between top and bottom bananas
+        gap = canvas.height * 0.4; // Reduced from 0.35 to 0.25
+      }
+
+      // Sound effects
+      let tapSound = new Audio("tap.mp3");
+      let dieSound1 = new Audio("die.mp3");
+      let dieSound2 = new Audio("die2.mp3");
+
+      // Preload sounds
+      tapSound.preload = "auto";
+      dieSound1.preload = "auto";
+      dieSound2.preload = "auto";
+
+      // Load images
+      const playerImg = new Image();
+      playerImg.src = "player.png";
+
+      const bananaImg = new Image();
+      bananaImg.src = "banana.png";
+
+      // Draw player with rounded corners
+      function drawPlayer() {
+        // Create rounded clipping path
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.width / 2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+
+        // Draw the player image
+        ctx.drawImage(
+          playerImg,
+          player.x - player.width / 2,
+          player.y - player.height / 2,
+          player.width,
+          player.height
+        );
+
+        ctx.restore();
+      }
+
+      // Draw bananas
+      function drawBananas() {
+        bananas.forEach((banana) => {
+          // Top banana (upside down)
+          ctx.save();
+          ctx.translate(banana.x, banana.topY + bananaHeight / 2);
+          ctx.scale(1, -1);
+          ctx.drawImage(
+            bananaImg,
+            -bananaWidth / 2,
+            -bananaHeight / 2,
+            bananaWidth,
+            bananaHeight
+          );
+          ctx.restore();
+
+          // Bottom banana
+          ctx.drawImage(
+            bananaImg,
+            banana.x - bananaWidth / 2,
+            banana.bottomY - bananaHeight / 2,
+            bananaWidth,
+            bananaHeight
+          );
+        });
+      }
+
+      // Create new bananas with reduced margins
+      function createBanana() {
+        // FURTHER REDUCED margins for top and bottom bananas
+        const minTopMargin = canvas.height * 0.05;
+        const maxTopMargin = canvas.height * 0.2;
+
+        const topHeight =
+          Math.random() * (maxTopMargin - minTopMargin) + minTopMargin;
+        bananas.push({
+          x: canvas.width,
+          topY: topHeight - bananaHeight / 2,
+          bottomY: topHeight + gap + bananaHeight / 2,
+          passed: false,
+        });
+      }
+
+      // Update game state
+      function update() {
+        if (!gameStarted || gameOver) return;
+
+        // Apply gravity to player
+        player.velocity += player.gravity;
+        player.y += player.velocity;
+
+        // Move bananas
+        bananas.forEach((banana) => {
+          banana.x -= canvas.width * 0.005;
+
+          // Check if player passed the banana
+          if (
+            !banana.passed &&
+            banana.x + bananaWidth / 2 < player.x - player.width / 2
+          ) {
+            score++;
+            scoreDisplay.textContent = score;
+            banana.passed = true;
+          }
+
+          // Check collision
+          if (
+            player.x + player.width / 2 > banana.x - bananaWidth / 2 &&
+            player.x - player.width / 2 < banana.x + bananaWidth / 2 &&
+            (player.y - player.height / 2 < banana.topY + bananaHeight / 2 ||
+              player.y + player.height / 2 > banana.bottomY - bananaHeight / 2)
+          ) {
+            endGame();
+          }
+        });
+
+        // Remove off-screen bananas
+        bananas = bananas.filter((banana) => banana.x > -bananaWidth);
+
+        // Check if player hit the ground or ceiling
+        if (
+          player.y + player.height / 2 > canvas.height ||
+          player.y - player.height / 2 < 0
+        ) {
+          endGame();
+        }
+      }
+
+      // Draw everything
+      function draw() {
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw background
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, "#87CEEB");
+        gradient.addColorStop(1, "#E0F7FF");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw clouds
+        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.beginPath();
+        ctx.arc(
+          canvas.width * 0.2,
+          canvas.height * 0.15,
+          canvas.width * 0.05,
+          0,
+          Math.PI * 2
+        );
+        ctx.arc(
+          canvas.width * 0.25,
+          canvas.height * 0.13,
+          canvas.width * 0.06,
+          0,
+          Math.PI * 2
+        );
+        ctx.arc(
+          canvas.width * 0.3,
+          canvas.height * 0.15,
+          canvas.width * 0.05,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(
+          canvas.width * 0.7,
+          canvas.height * 0.2,
+          canvas.width * 0.06,
+          0,
+          Math.PI * 2
+        );
+        ctx.arc(
+          canvas.width * 0.75,
+          canvas.height * 0.18,
+          canvas.width * 0.07,
+          0,
+          Math.PI * 2
+        );
+        ctx.arc(
+          canvas.width * 0.8,
+          canvas.height * 0.2,
+          canvas.width * 0.06,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+
+        // Draw player and bananas
+        drawPlayer();
+        drawBananas();
+
+        // Draw ground
+        ctx.fillStyle = "#8BC34A";
+        ctx.fillRect(
+          0,
+          canvas.height - canvas.height * 0.04,
+          canvas.width,
+          canvas.height * 0.04
+        );
+
+        ctx.fillStyle = "#7CB342";
+        ctx.fillRect(
+          0,
+          canvas.height - canvas.height * 0.04,
+          canvas.width,
+          canvas.height * 0.02
+        );
+      }
+
+      // Game loop
+      function gameLoop() {
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+      }
+
+      // Start the game
+      function startGame() {
+        gameStarted = true;
+        gameOver = false;
+        score = 0;
+        scoreDisplay.textContent = score;
+        bananas = [];
+
+        // Initialize game parameters based on current canvas size
+        initGameParams();
+
+        player.y = canvas.height / 2;
+        player.velocity = 0;
+        startBtn.style.display = "none";
+        finalScoreDisplay.style.display = "none";
+
+        // Start generating bananas
+        clearInterval(bananaInterval);
+        bananaInterval = setInterval(createBanana, 1500);
+      }
+
+      // End the game
+      function endGame() {
+        gameOver = true;
+        gameStarted = false;
+        clearInterval(bananaInterval);
+
+        // Update high score
+        if (score > highScore) {
+          highScore = score;
+          highScoreDisplay.textContent = highScore;
+        }
+
+        // Play die sound
+        if (dieSoundType === 1) {
+          dieSound1.currentTime = 0;
+          dieSound1.play();
+        } else {
+          dieSound2.currentTime = 0;
+          dieSound2.play();
+        }
+
+        // Show final score
+        finalScoreValue.textContent = score;
+        finalScoreDisplay.style.display = "block";
+      }
+
+      // Restart the game
+      function restartGame() {
+        // Stop any playing die sounds
+        dieSound1.pause();
+        dieSound1.currentTime = 0;
+        dieSound2.pause();
+        dieSound2.currentTime = 0;
+
+        startGame();
+      }
+
+      // Toggle die sound
+      function toggleSound() {
+        dieSoundType = dieSoundType === 1 ? 2 : 1;
+        soundStatus.textContent = `Current: Hame jine do`;
+      }
+
+      // Make the player jump
+      function jump() {
+        if (gameStarted && !gameOver) {
+          player.velocity = player.jumpPower;
+          tapSound.currentTime = 0;
+          tapSound.play();
+        }
+      }
+
+      // Event listeners
+      startBtn.addEventListener("click", startGame);
+      restartBtn.addEventListener("click", restartGame);
+      soundToggle.addEventListener("click", toggleSound);
+      mobileJumpBtn.addEventListener("click", jump);
+
+      // Jump when clicking/tapping the canvas
+      canvas.addEventListener("click", jump);
+
+      // Spacebar to jump
+      document.addEventListener("keydown", (e) => {
+        if (e.code === "Space" && gameStarted && !gameOver) {
+          jump();
+          e.preventDefault();
+        }
+      });
+
+      // Handle window resize
+      window.addEventListener("resize", () => {
+        setCanvasSize();
+        initGameParams();
+      });
+
+      // Wait for images to load before starting
+      let imagesLoaded = 0;
+      const totalImages = 2;
+
+      function imageLoaded() {
+        imagesLoaded++;
+        if (imagesLoaded === totalImages) {
+          // Initialize canvas size and start the game loop
+          setCanvasSize();
+          initGameParams();
+          gameLoop();
+        }
+      }
+
+      playerImg.onload = imageLoaded;
+      bananaImg.onload = imageLoaded;
+
+      // If images are already cached
+      if (playerImg.complete && bananaImg.complete) {
+        setCanvasSize();
+        initGameParams();
+        gameLoop();
+      }
+    </script>
+  </body>
+</html>
